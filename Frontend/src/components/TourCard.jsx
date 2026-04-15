@@ -1,8 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom'; // Routing ke liye zaroori hai
 
 const TourCard = ({ tour, index }) => {
-  // Destructuring like we do in Java POJOs
-  const { title, location, duration, price, rating, reviewCount, difficulty, featured } = tour;
+  // Destructuring (Like Java POJO Getters)
+  const { _id, title, location, duration, price, rating, difficulty, featured } = tour;
 
   return (
     <div 
@@ -19,7 +20,7 @@ const TourCard = ({ tour, index }) => {
       {/* Image Container */}
       <div className="relative h-64 overflow-hidden">
         <img 
-          src={`https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&q=80`} // Yahan backend se image URL aayega
+          src={`https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&q=80`} 
           alt={title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
@@ -63,9 +64,13 @@ const TourCard = ({ tour, index }) => {
           </div>
         </div>
 
-        <button className="w-full mt-6 py-3 bg-white/5 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all border border-white/10 hover:border-orange-500">
+        {/* --- DYNAMIC LINK ADDED HERE --- */}
+        <Link 
+          to={`/tour/${_id}`} 
+          className="block w-full mt-6 py-3 bg-white/5 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all border border-white/10 hover:border-orange-500 text-center"
+        >
           View Details
-        </button>
+        </Link>
       </div>
     </div>
   );
