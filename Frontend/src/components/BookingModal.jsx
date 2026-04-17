@@ -1,19 +1,50 @@
 import React, { useState } from 'react';
+import axios from 'axios'; // 1. Axios import kiya API call ke liye
 
 const BookingModal = ({ tour, onClose }) => {
   const [travelers, setTravelers] = useState(1);
   const [date, setDate] = useState('');
+  const [loading, setLoading] = useState(false); // Loading state add ki
 
   // Real-time calculation
   const totalAmount = tour.price * travelers;
 
-  const handleConfirmBooking = (e) => {
+  const handleConfirmBooking = async (e) => {
     e.preventDefault();
     if (!date) return alert("Bhai, pehle travel date toh select kar!");
-    
-    // Future mein yahan Backend API call jayegi (Booking DB mein save karne ke liye)
-    alert(`🎉 Booking Confirmed!\nTour: ${tour.title}\nTravelers: ${travelers}\nTotal: ₹${totalAmount.toLocaleString('en-IN')}\n\nJaldi hi payment gateway aayega!`);
-    onClose();
+
+    // 2. Check karo user logged in hai ya nahi
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+      alert("Bhai, pehle login toh kar le!");
+      return;
+    }
+
+    const user = JSON.parse(storedUser);
+    setLoading(true);
+
+    try {
+      // 3. Backend ko data bhej rahe hain (Payload)
+      const payload = {
+        userId: user.id || user._id, 
+        tourId: tour._id,
+        tourName: tour.title,
+        travelDate: date,
+        travelers: Number(travelers),
+        totalAmount: totalAmount
+      };
+
+      // 4. Actual POST request to backend
+      const res = await axios.post('/api/bookings', payload);
+      
+      alert(`🎉 ${res.data.message}\nTotal Amount: ₹${totalAmount.toLocaleString('en-IN')}`);
+      onClose(); // Modal band kar do
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || "Booking fail ho gayi, dobara try kar!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -86,8 +117,12 @@ const BookingModal = ({ tour, onClose }) => {
             </div>
           </div>
 
-          <button type="submit" className="w-full bg-white text-orange-600 font-black py-4 rounded-xl uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all shadow-xl">
-            Confirm & Pay Later
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full bg-white text-orange-600 font-black py-4 rounded-xl uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all shadow-xl disabled:opacity-50"
+          >
+            {loading ? 'Processing...' : 'Confirm & Book'}
           </button>
         </form>
 
