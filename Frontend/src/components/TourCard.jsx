@@ -1,9 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom'; // Routing ke liye zaroori hai
+import { Link } from 'react-router-dom';
 
 const TourCard = ({ tour, index }) => {
-  // Destructuring (Like Java POJO Getters)
-  const { _id, title, location, duration, price, rating, difficulty, featured } = tour;
+  // Destructuring mein images array bhi add kiya
+  const { _id, title, location, duration, price, rating, difficulty, featured, images } = tour;
+
+  // Safe check: Agar database mein image nahi hai toh ek default image dikhegi
+  const displayImage = images && images.length > 0 
+    ? images[0] 
+    : 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&q=80';
 
   return (
     <div 
@@ -20,7 +25,7 @@ const TourCard = ({ tour, index }) => {
       {/* Image Container */}
       <div className="relative h-64 overflow-hidden">
         <img 
-          src={`https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&q=80`} 
+          src={displayImage} 
           alt={title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
@@ -64,7 +69,6 @@ const TourCard = ({ tour, index }) => {
           </div>
         </div>
 
-        {/* --- DYNAMIC LINK ADDED HERE --- */}
         <Link 
           to={`/tour/${_id}`} 
           className="block w-full mt-6 py-3 bg-white/5 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all border border-white/10 hover:border-orange-500 text-center"

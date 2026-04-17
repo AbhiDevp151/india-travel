@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import TourCard from '../components/TourCard';
+import Reviews from '../components/Reviews'; // Reviews component import kar lena
 
 // --- DATA CONSTANTS ---
 const HERO_SLIDES = [
@@ -18,44 +19,31 @@ const STATS = [
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const STATIC_TOURS = [
-  { _id: '1', title: 'Golden Triangle', location: 'Delhi - Agra - Jaipur', duration: '7 Days', price: 45000, rating: 4.9, difficulty: 'Easy', featured: true, month: "Oct" },
-  { _id: '2', title: 'Kerala Backwaters', location: 'Alleppey - Munnar', duration: '6 Days', price: 38000, rating: 4.8, difficulty: 'Easy', featured: true, month: "Dec" },
-  { _id: '3', title: 'Ladakh Adventure', location: 'Leh - Nubra', duration: '8 Days', price: 55000, rating: 4.7, difficulty: 'Challenging', featured: false, month: "Jun" },
-  { _id: '4', title: 'Spiti Valley', location: 'Kaza - Kibber', duration: '10 Days', price: 42000, rating: 4.9, difficulty: 'Challenging', featured: true, month: "Jul" },
-];
-
 const Home = () => {
-  const [tours, setTours] = useState(STATIC_TOURS);
+  const [tours, setTours] = useState([]); 
   const [slide, setSlide] = useState(0);
   const [selectedMonth, setSelectedMonth] = useState("All");
   const [budget, setBudget] = useState(80000);
 
-  // Data Fetching
+  // 1. Fetch Filtered Data from Backend
   useEffect(() => {
-    const fetchTours = async () => {
+    const fetchFilteredTours = async () => {
       try {
-        const r = await axios.get('/api/tours/featured');
-        if (r.data && Array.isArray(r.data)) setTours(r.data);
+        const url = `/api/tours/search?month=${selectedMonth}&budget=${budget}`;
+        const r = await axios.get(url);
+        if (r.data) setTours(r.data);
       } catch (err) {
-        setTours(STATIC_TOURS);
+        console.error("Database connection error:", err);
       }
     };
-    fetchTours();
-  }, []);
+    fetchFilteredTours();
+  }, [selectedMonth, budget]); 
 
-  // Hero Slider
+  // 2. Hero Slider Logic
   useEffect(() => {
     const t = setInterval(() => setSlide(s => (s + 1) % HERO_SLIDES.length), 5500);
     return () => clearInterval(t);
   }, []);
-
-  // Filtering Logic
-  const filteredTours = tours.filter(t => {
-    const monthMatch = selectedMonth === "All" || t.month === selectedMonth;
-    const budgetMatch = t.price <= budget;
-    return monthMatch && budgetMatch;
-  });
 
   const current = HERO_SLIDES[slide];
 
@@ -80,21 +68,13 @@ const Home = () => {
             <h1 className="text-6xl md:text-8xl lg:text-9xl font-black italic uppercase leading-[0.85]">
               Time To<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-600 not-italic">Travel</span>
             </h1>
-            <p className="text-gray-400 text-lg max-w-md italic border-l border-white/20 pl-4">
-              India's first budget-intelligent planner. Real-time cost adjustments.
-            </p>
           </div>
-        </div>
-        <div className="absolute bottom-12 left-6 md:left-12 border-l-4 border-orange-500 pl-4 z-10">
-          <p className="text-2xl md:text-4xl font-black uppercase tracking-tighter">{current?.place}</p>
-          <p className="text-orange-500/80 text-xs font-bold uppercase tracking-widest">{current?.loc}</p>
         </div>
       </section>
 
-      {/* 2 & 4 COMBINED: SMART PLANNER & RESULTS */}
+      {/* 2. SMART PLANNER & RESULTS */}
       <section className="relative z-20 -mt-24 container mx-auto px-6">
         <div className="bg-zinc-900/95 backdrop-blur-3xl border border-white/10 p-8 md:p-12 rounded-[3.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)]">
-          
           <div className="grid lg:grid-cols-12 gap-12">
             
             {/* LEFT: FILTERS */}
@@ -130,10 +110,6 @@ const Home = () => {
                   onChange={(e) => setBudget(e.target.value)} 
                   className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-orange-500" 
                 />
-                <div className="flex justify-between mt-3 text-[10px] font-bold text-zinc-600">
-                  <span>10K</span>
-                  <span>100K</span>
-                </div>
               </div>
             </div>
 
@@ -147,24 +123,23 @@ const Home = () => {
                   </h2>
                 </div>
                 <div className="px-5 py-2 bg-white/5 border border-white/10 rounded-full">
-                   <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest">{filteredTours.length} Plans Found</p>
+                   <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest">{tours.length} Plans Found</p>
                 </div>
               </div>
 
-              {filteredTours.length > 0 ? (
+              {tours.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-h-[700px] overflow-y-auto pr-4 custom-scrollbar">
-                  {filteredTours.map((t, i) => (
+                  {tours.map((t, i) => (
                     <TourCard key={t._id || i} tour={t} index={i} />
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-32 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
-                  <h3 className="text-xl text-gray-500 italic mb-4">Koi tours nahi mile is budget mein.</h3>
-                  <button onClick={() => setBudget(100000)} className="text-orange-500 font-black uppercase text-xs tracking-widest border-b-2 border-orange-500 pb-1">Show All Tours</button>
+                <div className="flex flex-col items-center justify-center py-32 bg-white/5 rounded-[3rem] border border-dashed border-white/10 text-center">
+                  <h3 className="text-xl text-gray-500 italic mb-4">No tours found for ₹{budget} in {selectedMonth}.</h3>
+                  <button onClick={() => {setBudget(100000); setSelectedMonth("All")}} className="text-orange-500 font-black uppercase text-xs tracking-widest border-b-2 border-orange-500 pb-1">Reset Filters</button>
                 </div>
               )}
             </div>
-
           </div>
         </div>
       </section>
@@ -179,31 +154,13 @@ const Home = () => {
         ))}
       </section>
 
-      {/* 5. MEET THE GUIDES */}
-      <section className="py-24 container mx-auto px-6">
-        <h2 className="text-4xl font-black italic uppercase mb-16 border-l-4 border-orange-500 pl-6">Meet Your <span className="text-orange-500">Local Experts</span></h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {[
-            { name: "Arjun Sharma", loc: "Himachal", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400" },
-            { name: "Riya Iyer", loc: "Kerala", img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400" },
-            { name: "Vikram Rathore", loc: "Rajasthan", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400" },
-            { name: "Sonam Dolma", loc: "Ladakh", img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400" }
-          ].map((guide, i) => (
-            <div key={i} className="group bg-zinc-900/50 rounded-3xl p-6 border border-white/5 hover:border-orange-500/30 transition-all">
-              <div className="overflow-hidden rounded-2xl mb-4">
-                <img src={guide.img} className="h-48 w-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-500" alt={guide.name} />
-              </div>
-              <h4 className="text-xl font-black uppercase">{guide.name}</h4>
-              <p className="text-orange-500 text-[10px] font-black tracking-widest uppercase">{guide.loc} Specialist</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* 4. REVIEWS SECTION (New) */}
+      <Reviews />
 
-      {/* 6. HOW IT WORKS */}
+      {/* 5. HOW IT WORKS */}
       <section className="py-32 bg-zinc-900/30">
         <div className="container mx-auto px-6 text-center">
-          <h2 className="text-5xl font-black italic uppercase mb-24">How we <span className="text-orange-500 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-600">Plan</span> it</h2>
+          <h2 className="text-5xl font-black italic uppercase mb-24">How we <span className="text-orange-500">Plan</span> it</h2>
           <div className="grid md:grid-cols-3 gap-16">
             {[
               { s: "01", t: "Set Budget", d: "Slider se apna budget fix karo." },
@@ -211,21 +168,20 @@ const Home = () => {
               { s: "03", t: "Let's Go", d: "Local guide ke saath trip start karo." }
             ].map((item, i) => (
               <div key={i} className="relative group">
-                <div className="h-20 w-20 bg-zinc-950 border border-orange-500 rounded-full flex items-center justify-center mx-auto text-3xl font-black text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all duration-500 mb-6 shadow-[0_0_30px_rgba(249,115,22,0.2)]">{item.s}</div>
+                <div className="h-20 w-20 bg-zinc-950 border border-orange-500 rounded-full flex items-center justify-center mx-auto text-3xl font-black text-orange-500 mb-6">{item.s}</div>
                 <h3 className="text-xl font-black uppercase mb-3">{item.t}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{item.d}</p>
+                <p className="text-gray-500 text-sm">{item.d}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 9. CTA */}
+      {/* 6. CTA */}
       <section className="container mx-auto px-6 mb-32 pt-10">
         <div className="bg-gradient-to-br from-orange-600 to-red-700 rounded-[4rem] p-16 md:p-24 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 blur-[100px] rounded-full -mr-20 -mt-20" />
-          <h2 className="text-5xl md:text-8xl font-black uppercase italic mb-10 relative z-10 leading-[0.9]">Ready to <br/> Explore?</h2>
-          <button className="bg-white text-orange-600 px-12 py-5 rounded-full font-black uppercase tracking-widest hover:scale-105 transition-all relative z-10 shadow-2xl active:scale-95">Get Free Plan</button>
+          <h2 className="text-5xl md:text-8xl font-black uppercase italic mb-10 relative z-10">Ready to Explore?</h2>
+          <button className="bg-white text-orange-600 px-12 py-5 rounded-full font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl">Get Free Plan</button>
         </div>
       </section>
       
