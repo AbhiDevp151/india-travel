@@ -5,26 +5,23 @@ import Home from './pages/Home';
 import Tour from './pages/Tour';
 import Login from './pages/Login';
 import Gallery from './pages/Gallery';
-import UserProfile from './pages/UserProfile';
-import TourDetails from './pages/TourDetails'; // "Learn More" wala page
+import TourDetails from './pages/TourDetails';
+import Admin from './pages/Admin'; // 👉 YE IMPORT ZAROORI HAI
 
 function App() {
   return (
     <Router>
       <Navbar />
       <Routes>
-        {/* Main Pages */}
         <Route path="/" element={<Home />} />
         <Route path="/tours" element={<Tour />} />
         <Route path="/gallery" element={<Gallery />} />
-        <Route path="/profile" element={<UserProfile />} />
-        {/* Dynamic Route: :id ka matlab hai yahan kisi bhi tour ki ID aa sakti hai */}
         <Route path="/tour/:id" element={<TourDetails />} />
-        
-        {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
-        {/* Baad mein Register page bana ke yahan link kar dena */}
         <Route path="/register" element={<Login />} /> 
+        
+        {/* 👉 ADMIN ROUTE YAHAN HAI */}
+        <Route path="/admin" element={<Admin />} /> 
       </Routes>
     </Router>
   );

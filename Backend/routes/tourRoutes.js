@@ -59,4 +59,32 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// ==========================================
+// ADMIN ROUTES (CRUD Operations)
+// ==========================================
+
+// 5. CREATE A NEW TOUR (Admin use)
+router.post('/', async (req, res) => {
+  try {
+    const newTour = new Tour(req.body);
+    const savedTour = await newTour.save();
+    res.status(201).json(savedTour);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// 6. DELETE A TOUR (Admin use)
+router.delete('/:id', async (req, res) => {
+  try {
+    const tour = await Tour.findById(req.params.id);
+    if (!tour) return res.status(404).json({ message: 'Tour not found' });
+    
+    await Tour.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Tour deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
